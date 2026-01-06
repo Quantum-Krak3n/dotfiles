@@ -12,7 +12,7 @@
           "META, RETURN, exec, alacritty"
           "META, B, exec, firefox" # Opens the browser
 
-          "META, SPACE, exec, wofi --show drun" # Open wofi to run .desktop entries
+          "META, SPACE, exec, wofi --insensitive --show drun" # Open wofi to run .desktop entries
           "META ALT, SPACE, exec, wofi --show run" # Open to run from path
 
           # "CTRL ALT ALT, DELETE, exec, wlogout" # TODO
