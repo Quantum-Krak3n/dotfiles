@@ -15,8 +15,8 @@
           "META, SPACE, exec, wofi --insensitive --show drun" # Open wofi to run .desktop entries
           "META ALT, SPACE, exec, wofi --show run" # Open to run from path
 
-          # "CTRL ALT ALT, DELETE, exec, wlogout" # TODO
-          "CTRL ALT ALT, DELETE, exec, loginctl terminate-user $USER" # Interim, just kill hyprland
+          # "CTRL ALT, DELETE, exec, wlogout" # TODO
+          "CTRL ALT, DELETE, exec, loginctl terminate-user $USER" # Interim, just kill hyprland
 
           "META, Q, killactive" # Close current window
           "META ALT, Q, forcekillactive" # Kill current window
