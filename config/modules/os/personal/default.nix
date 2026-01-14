@@ -9,6 +9,11 @@
 {
   imports = [
   ];
+  
+  programs = {
+    hyprland.enable = true; # Enable system wide, configure in HM
+    regreet.enable = true;
+  };
 
   programs.nix-ld.enable = true; # https://nix.dev/guides/faq#how-to-run-non-nix-executables
   programs.nix-ld.libraries = with pkgs; [
