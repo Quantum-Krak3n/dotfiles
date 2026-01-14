@@ -5,7 +5,7 @@
   ...
 }:
 {
-  imports = [ ./hypr ];
+  imports = [ ./hypr ./code ];
 
   home.packages = with pkgs; [
     # nodejs
