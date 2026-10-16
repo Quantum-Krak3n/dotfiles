@@ -1,0 +1,91 @@
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
+{
+  imports = [
+    ./ghostty.nix
+    ./defaultApps.nix
+  ];
+
+  home.sessionVariables = {
+    NIXOS_OZONE_WL = "1";
+    DEFAULT_BROWSER = "${lib.getExe pkgs.firefox}";
+    BROWSER = "firefox";
+    TERMINAL = "ghostty";
+  };
+
+  home.packages = with pkgs; [
+    playerctl
+    brightnessctl
+
+    # Thumbnail providers
+    ffmpegthumbnailer # Video
+    poppler_gi # Adobe .pdf files
+    freetype # Font files
+    libgsf # .odf files
+    evince # .pdf files
+    f3d # 3D files, includ1ing glTF, stl, step, ply, obj, fbx
+
+    slurp # Region selector
+    grim # Screenshot taker
+    swappy # Screenshot editor
+    wl-clipboard
+
+    kdePackages.ark # Archive manager
+    gnome-disk-utility
+    qdirstat
+    vlc
+    blueman
+
+    noto-fonts
+    nerd-fonts.caskaydia-cove
+    nerd-fonts.mononoki
+    font-awesome
+
+    aspell
+    aspellDicts.en
+
+    pavucontrol # Audio settings
+  ];
+
+  home.file = {
+    ".aspell.conf".text = ''
+      master en_AU
+    '';
+  };
+
+  programs = {
+    firefox = {
+      enable = true;
+      configPath = "${config.xdg.configHome}/mozilla/firefox";
+    };
+    wofi.enable = true; # Spotlight search
+  };
+
+  services = {
+    dunst.enable = true; # Notification daemon
+    cliphist.enable = true;
+    wl-clip-persist.enable = true;
+  };
+
+  home.file = {
+    ".config/Thunar/uca.xml".text = ''
+      <?xml version="1.0" encoding="UTF-8"?>
+      <actions>
+      <action>
+        <icon>utilities-terminal</icon>
+        <name>Open Terminal Here</name>
+        <submenu></submenu>
+        <unique-id>1735180505505982-1</unique-id>
+        <command>${pkgs.ghostty}/bin/ghostty --working-directory="%f"</command>
+        <patterns>*</patterns>
+        <startup-notify/>
+        <directories/>
+      </action>
+      </actions>
+    '';
+  };
+}

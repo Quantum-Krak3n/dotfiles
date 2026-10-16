@@ -1,24 +1,24 @@
 {
-  config,
   pkgs,
-  lib,
   ...
 }:
 {
-  imports = [ ./hypr ./code ];
-
-  home.packages = with pkgs; [
-    # nodejs
-    # gcc
+  imports = [
+    ../common
+    ./base.nix
+    ./hypr
+    ./code
   ];
 
-  programs = {
-    firefox.enable = true;
-    wofi.enable = true; # Spotlight search
-    alacritty.enable = true; # Terminal
-  };
+  home.packages = with pkgs; [
+    spotify
+    obsidian
+    beeper
 
-  services = {
-    dunst.enable = true; # Notification daemon
-  };
+    hyprpicker # Colour picker
+    wev # Waykand event viewer
+    nodejs
+    ffmpeg
+    android-tools # adb etc
+  ];
 }

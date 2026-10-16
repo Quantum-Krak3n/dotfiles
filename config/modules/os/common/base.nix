@@ -1,21 +1,26 @@
 {
-  config,
-  lib,
   pkgs,
   inputs,
+  user,
   ...
 }:
 
 {
-  boot.kernelPackages = pkgs.linuxPackages_latest; # Sets the kernel version https://nixos.wiki/wiki/Linux_kernel
+  imports = [ ];
 
-  systemd.oomd.enableUserSlices = true; # I don't remember why
+  boot = {
+    kernelPackages = pkgs.linuxPackages_latest; # Sets the kernel version https://nixos.wiki/wiki/Linux_kernel
+    tmp.cleanOnBoot = true;
+  };
+
+  hardware.enableAllFirmware = true;
 
   nixpkgs.config = {
     allowUnfree = true;
   };
 
   nix.settings = {
+    nix-path = [ "nixpkgs=${inputs.nixpkgs}" ]; # For nixd
     trusted-users = [ "@wheel" ];
     experimental-features = [
       "nix-command"
@@ -26,13 +31,18 @@
     # List of binary cache URLs used to obtain pre-built binaries of Nix packages
     substituters = [
       "https://nix-community.cachix.org"
-    ];
-    trusted-substituters = [
-      "https://nix-community.cachix.org"
+      "https://hyprland.cachix.org"
+      "https://cache.nixos-cuda.org" # Hydra doesn't build packages with cuda support
     ];
     trusted-public-keys = [
       "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+      "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc="
+      "cache.nixos-cuda.org:74DUi4Ye579gUqzH4ziL9IyiJBlDpMRn9MBN8oNan9M="
     ];
+
+    connect-timeout = 5;
+    download-attempts = 1;
+    builders-use-substitutes = true;
   };
 
   time.timeZone = "Australia/Melbourne";
@@ -40,13 +50,13 @@
   i18n.defaultLocale = "en_AU.UTF-8";
 
   users = {
-    groups.matt.gid = 1000;
-    users.matt = {
+    groups.${user.name}.gid = 1000;
+    users.${user.name} = {
       uid = 1000;
-      description = "Matthew Murphy";
+      description = user.fullName;
       createHome = true;
-      home = "/home/matt";
-      group = "matt";
+      home = "/home/${user.name}";
+      group = user.name;
       extraGroups = [
         "wheel"
         "networkmanager"
@@ -56,15 +66,22 @@
         "kvm"
         "tty"
         "dialout"
+        "samba"
       ];
       isNormalUser = true;
-      openssh.authorizedKeys.keys = [
-        "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC9kVH5ybQdbqUxpJF2ryMQfqmpYSXj9iprIleVTrcCWfapCxYvQWx/XBiIoUaX9j+8Qlo53UT1tKqOWFlwK3Np0JjlcR3vpTCsXCn8YHlX3J9oPPmRfy+mS2TonV+wnnyJxq6oqmwYRl4OoThEFyOrsvX7+LbHBl6lvduGRRqtmSfPw+03Eqbrf8kPlIiEy3iC4ir70I1H/U15iXm7A0AQ4dtfqAjnrA/NhnuRr4BTBqxwS4bPgH8fmNRuoIQBee2F1i0dgkcOTkz3bnj6Hn4fSOlJY4IhGdKEgBhaQuAd0ZmfflVJDBkaf5vV7ifrrd1jGpKWVwUVwGkA9NjlunzP"
-      ];
+      openssh.authorizedKeys.keys = [ user.sshKeys.personal ];
     };
   };
 
+  security.sudo.wheelNeedsPassword = false; # FIXME do you want this?
+
   services = {
-    openssh.enable = true;
+    openssh = {
+      enable = true;
+      settings.PasswordAuthentication = false;
+      settings.Macs = [ "hmac-sha2-256" ]; # For cloudflared ssh https://github.com/cloudflare/cloudflared/issues/1198
+    };
   };
+
+  system.stateVersion = user.stateVersion;
 }

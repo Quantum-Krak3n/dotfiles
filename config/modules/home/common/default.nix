@@ -1,7 +1,6 @@
 {
-  config,
   pkgs,
-  lib,
+  user,
   ...
 }:
 
@@ -10,31 +9,26 @@
     ./base.nix
 
     ./shell
-    ./java.nix
   ];
 
+  xdg.enable = true;
+
   home.packages = with pkgs; [
-    wget
-    btop
-    zip
-    unzip
-    traceroute
-    jq
-    file
+    nix-search
+    hwatch # better watch command
   ];
 
   programs = {
-    zellij = {
-      enable = true;
-    };
+    ssh.enable = true;
 
     delta = {
-      enable = true; # Syntax hilighting
+      enable = true; # Git diff syntax hilighting
       enableGitIntegration = true;
     };
 
     git = {
       enable = true;
+      lfs.enable = true;
 
       settings = {
         credential.helper = "store";
@@ -44,9 +38,32 @@
           "github:"
         ];
         user = {
-          email = "matt@barbermurphy.id.au";
-          name = "Matthew Murphy";
+          email = user.email;
+          name = user.fullName;
         };
+        alias = {
+          co = "checkout";
+          cl = "clone";
+          br = "branch";
+          ci = "commit";
+          st = "status";
+          pl = "pull";
+          ps = "push";
+          rs = "reset";
+          rh = "reset --hard HEAD";
+          b = "bisect bad";
+          g = "bisect good";
+        };
+      };
+    };
+
+    btop = {
+      enable = true;
+      # package = pkgs.btop-rocm # or pkgs.btop-cuda
+      settings = {
+        theme_background = false;
+        presets = "";
+        clock_format = "/host %X";
       };
     };
   };
