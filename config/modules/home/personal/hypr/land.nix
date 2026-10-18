@@ -8,7 +8,7 @@
 
 {
   home.file.".config/hypr/hyprland.lua".source =
-    lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/dotfiles/config/modules/home/personal/hypr/lang.lua";
+    config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/dotfiles/config/modules/home/personal/hypr/lang.lua";
 
   # wayland.windowManager = {
   #   hyprland = {
