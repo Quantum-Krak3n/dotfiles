@@ -1,106 +1,231 @@
 {
-  wayland.windowManager = {
-    hyprland = {
-      enable = true;
-      settings = {
-        # https://wiki.hyprland.org/Configuring/Binds/
-        # use `wev` to figure out what key is what
+  lib,
+  config,
+  ...
+}:
 
-        # Non-repeating
-        bind = [
-          # Actions
-          "META, RETURN, exec, alacritty"
-          "META, B, exec, firefox" # Opens the browser
+{
+  wayland.windowManager.hyprland.settings = {
+    # https://wiki.hypr.land/Configuring/Advanced-and-Cool/Gestures/
+    change_volume._var = lib.generators.mkLuaInline ''function (change) hl.exec_cmd("wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ " .. math.abs(change) .. "%" .. (change<0 and "-" or "+")) end''; # Limit volume to 150%
+    volume_gesture._var = lib.generators.mkLuaInline "function (change) change_volume(-0.25 * change) end";
 
-          "META, SPACE, exec, wofi --insensitive --show drun" # Open wofi to run .desktop entries
-          "META ALT, SPACE, exec, wofi --show run" # Open to run from path
+    brightness_accumulator._var = 0; # Keep track of fractions of a percent
+    change_brightness._var = lib.mkBefore (
+      lib.generators.mkLuaInline ''function (change) hl.exec_cmd("brightnessctl --min-value=4000 --exponent=3 s " .. (change<0 and (math.abs(change) .. "%-") or ("+" .. math.abs(change) .. "%"))) end''
+    );
+    xbrightness_gesture._var = lib.mkAfter (
+      lib.generators.mkLuaInline "function (change) brightness_accumulator = brightness_accumulator + (-0.25 * change); local int_part = math.floor(brightness_accumulator); brightness_accumulator = brightness_accumulator - int_part; change_brightness(int_part) end"
+    );
 
-          # "CTRL ALT, DELETE, exec, wlogout" # TODO
-          "CTRL ALT, DELETE, exec, loginctl terminate-user $USER" # Interim, just kill hyprland
+    gesture =
+      let
+        mkLuaInlineFunction = x: lib.generators.mkLuaInline ("function (e) " + x + " end");
+      in
+      [
+        # 3 Up Down: Volume
+        {
+          fingers = 3;
+          direction = "vertical";
+          action = {
+            start = mkLuaInlineFunction "volume_gesture(e.delta.y)";
+            update = mkLuaInlineFunction "volume_gesture(e.delta.y)";
+          };
+        }
+        # SHIFT 3 Up Down: Volume
+        {
+          fingers = 3;
+          direction = "vertical";
+          mods = "SHIFT";
+          action = {
+            start = mkLuaInlineFunction "brightness_accumulator = 0; xbrightness_gesture(e.delta.y)";
+            update = mkLuaInlineFunction "xbrightness_gesture(e.delta.y)";
+          };
+        }
+        # 3 Left Right: Workspace
+        {
+          fingers = 3;
+          direction = "horizontal";
+          scale = 2;
+          action = "workspace";
+        }
 
-          "META, Q, killactive" # Close current window
-          "META ALT, Q, forcekillactive" # Kill current window
-          "META, T, togglefloating" # Toggle between tiling and floating window
-          "META, P, pseudo," # Psudotiling (floating window, centered in a tile)
-          "META, F, fullscreen, 0" # fullscreen
-          "META, M, fullscreen, 1" # maximise
+        # 4 Down: Play pause
+        {
+          fingers = 4;
+          direction = "down";
+          action = mkLuaInlineFunction "hl.exec_cmd('playerctl play-pause')";
+        }
+        # 4 Right Left: Next previous track
+        {
+          fingers = 4;
+          direction = "right";
+          action = mkLuaInlineFunction "hl.exec_cmd('playerctl previous')";
+        }
+        {
+          fingers = 4;
+          direction = "left";
+          action = mkLuaInlineFunction "hl.exec_cmd('playerctl next')";
+        }
+        # SHIFT 4 Right Left: Seek in track
+        {
+          fingers = 4;
+          direction = "right";
+          mods = "SHIFT";
+          action = mkLuaInlineFunction "hl.exec_cmd('playerctl position 10-')";
+        }
+        {
+          fingers = 4;
+          direction = "left";
+          mods = "SHIFT";
+          action = mkLuaInlineFunction "hl.exec_cmd('playerctl position 10+')";
+        }
+      ];
 
-          "META, J, togglesplit," # flip between horizontal and vertical split
-          # "META, L, exec, hyprlock --immediate & loginctl lock-session" # lock TODO
+    # https://wiki.hypr.land/Configuring/Basics/Binds/
+    # https://wiki.hypr.land/Configuring/Basics/Dispatchers/
+    # use `wev` to figgure out what key is what
+    bind =
+      let
+        genBindAttrs = keys: dispatcher: {
+          _args = [
+            keys
+            (lib.generators.mkLuaInline dispatcher)
+          ];
+        };
+        genMouseBindAttrs = keys: dispatcher: {
+          _args = [
+            keys
+            (lib.generators.mkLuaInline dispatcher)
+            { mouse = true; }
+          ];
+        };
+        genRepeatingBindAttrs = keys: dispatcher: {
+          _args = [
+            keys
+            (lib.generators.mkLuaInline dispatcher)
+            { repeating = true; }
+          ];
+        };
+      in
+      [
+        # Mouse movement
+        (genMouseBindAttrs "META + mouse:272" "hl.dsp.window.drag()") # META + LMB: Move a window
+        (genMouseBindAttrs "META + mouse:273" "hl.dsp.window.resize()") # META + RMB: Resize a window
+        (genMouseBindAttrs "META + ALT + mouse:273" "hl.dsp.window.resize({ keep_aspect_ratio = true })") # META + RMB: Resize a window
 
-          # Media keys
-          ", XF86AudioMute, exec, wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
-          ", XF86AudioPlay, exec, playerctl play-pause"
-          ", XF86AudioPrev, exec, playerctl previous"
-          ", XF86AudioNext, exec, playerctl next"
-          "SHIFT, XF86AudioPrev, exec, playerctl position 10-"
-          "SHIFT, XF86AudioNext, exec, playerctl position 10+"
+        # Actions
+        (genBindAttrs "META + RETURN" "hl.dsp.exec_cmd('ghostty')")
+        (genBindAttrs "META + C" "hl.dsp.exec_cmd('code')")
+        (genBindAttrs "META + E" "hl.dsp.exec_cmd('thunar')")
+        (genBindAttrs "META + SPACE" "hl.dsp.exec_cmd('wofi --insensitive --show drun')") # Open wofi to run .desktop entries
+        (genBindAttrs "META + ALT + SPACE" "hl.dsp.exec_cmd('wofi --insensitive --show run')") # Open to run from path
+        (genBindAttrs "META + B" "hl.dsp.exec_cmd('firefox')")
+        (genBindAttrs "META + S" "hl.dsp.exec_cmd('spotify')")
+        (genBindAttrs "META + V" "hl.dsp.exec_cmd('cliphist list | wofi -S dmenu | cliphist decode | wl-copy')")
+        (genBindAttrs "META + N" "hl.dsp.exec_cmd('obsidian')")
+        (genBindAttrs "META + ALT + B" "hl.dsp.exec_cmd('pkill -USR1 waybar || ~/dotfiles/scripts/reload-waybar.sh')") # Toggle waybar
 
-          # Move focus with mod + arrow keys
-          "META, left, movefocus, l" # Move focus left
-          "META, right, movefocus, r" # Move focus right
-          "META, up, movefocus, u" # Move focus up
-          "META, down, movefocus, d" # Move focus down
+        # Session
+        (genBindAttrs "CTRL + ALT + DELETE" "hl.dsp.exec_cmd('wlogout')")
+        (genBindAttrs "META + SHIFT + ALT + B" "hl.dsp.exec_cmd('~/dotfiles/scripts/reload-waybar.sh')")
+        (genBindAttrs "META + SHIFT + ALT + W" "hl.dsp.exec_cmd('~/dotfiles/scripts/reload-hyprpaper.sh')")
 
-          # Move window
-          "META SHIFT, left, movewindow, l" # Move focus left
-          "META SHIFT, right, movewindow, r" # Move focus right
-          "META SHIFT, up, movewindow, u" # Move focus up
-          "META SHIFT, down, movewindow, d" # Move focus down
+        (genBindAttrs "META + Q" "hl.dsp.window.close()")
+        (genBindAttrs "META + ALT + Q" "hl.dsp.window.kill()")
+        (genBindAttrs "META + ALT + T" "hl.dsp.window.float()")
+        (genBindAttrs "META + P" "hl.dsp.window.pseudo()")
+        (genBindAttrs "META + M" "hl.dsp.window.fullscreen_state({internal = 1, client = 1, action = 'toggle'})") # Toggle maximised
+        (genBindAttrs "META + F" "hl.dsp.window.fullscreen_state({internal = 2, client = 2, action = 'toggle'})") # Toggle fullscreen
+        (genBindAttrs "META + ALT + F" "hl.dsp.window.fullscreen_state({internal = 2, client = 0})") # Make window fullscreen, but make the app think it's tiled
+        (genBindAttrs "META + ALT + M" "hl.dsp.window.fullscreen_state({internal = 1, client = 2})") # Make window maximised, but make the app think it's fullscreen
+        (genBindAttrs "META + ALT + N" "hl.dsp.window.fullscreen_state({internal = 0, client = 2})") # Make window tiled, but make the app think it's fullscreen
+        (genBindAttrs "META + ALT + S" "hl.dsp.window.toggle_swallow()") # Make swallowed windows visible
 
-          # Move workspace to monitor
-          "META ALT, left, moveworkspacetomonitor, +0 l" # Move focus left
-          "META ALT, right, moveworkspacetomonitor, +0 r" # Move focus right
-          "META ALT, up, moveworkspacetomonitor, +0 u" # Move focus up
-          "META ALT, down, moveworkspacetomonitor, +0 d" # Move focus down
+        (genBindAttrs "META + ALT + P" ''
+          function()
+            local w = hl.get_active_window()
+            for index, value in ipairs(w.tags) do
+              if value == 'PIP*' then
+                hl.dispatch(hl.dsp.window.pin({ action = 'off', window = w }))
+                hl.dispatch(hl.dsp.window.float({ action = 'off', window = w }))
+                hl.dispatch(hl.dsp.window.tag({ tag = '-PIP*', window = w }))
+                return
+              end
+            end
 
-          # Switch workspaces with mod + [ or ]
-          "META, bracketright, workspace, r+1" # Switch to workspace right
-          "META, bracketleft, workspace, r-1" # Switch to workspace left
+            hl.dispatch(hl.dsp.window.tag({ tag = '+PIP*', window = w }))
+            hl.dispatch(hl.dsp.window.float({ action = 'on', window = w }))
+            hl.dispatch(hl.dsp.window.pin({ action = 'on', window = w }))
+            hl.dispatch(hl.dsp.window.move({ x = w.monitor.size.width - w.size.x - 640, y = w.monitor.size.height - w.size.y - 400, window = w }))
+          end
+        '')
 
-          # Move active window to a workspace with mod + SHIFT + [ or  ]
-          "META SHIFT, bracketright, movetoworkspace, +1" # Move window to workspace right
-          "META SHIFT, bracketleft, movetoworkspace, -1" # Move window to workspace left
+        # Media
+        (genBindAttrs "XF86AudioMute" "hl.dsp.exec_cmd('wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle')")
+        (genBindAttrs "XF86AudioPlay" "hl.dsp.exec_cmd('playerctl play-pause')")
+        (genBindAttrs "XF86AudioPrev" "hl.dsp.exec_cmd('playerctl previous')")
+        (genBindAttrs "XF86AudioNext" "hl.dsp.exec_cmd('playerctl next')")
+        (genBindAttrs "ALT+ XF86AudioPrev" "hl.dsp.exec_cmd('playerctl position 10-')")
+        (genBindAttrs "ALT+ XF86AudioNext" "hl.dsp.exec_cmd('playerctl position 10+')")
 
-          # Move active window to a workspace and don't move focus with mod + alt + [ or ]
-          "META ALT, bracketright, movetoworkspacesilent, +1" # Move window to workspace right
-          "META ALT, bracketleft, movetoworkspacesilent, -1" # Move window to workspace left
-        ]
-        ++ (builtins.concatLists (
-          builtins.genList
-            # For numbers 1-9
-            (
-              i:
-              let
-                ws = i + 1;
-              in
-              [
-                "META, code:1${toString i}, workspace, ${toString ws}" # Switch workspaces with mod + [0-9]
-                "META SHIFT, code:1${toString i}, movetoworkspace, ${toString ws}" # Move active window to a workspace with mod + SHIFT + [0-9]
-                "META ALT, code:1${toString i}, movetoworkspacesilent, ${toString ws}" # Move active window to a workspace with mod + alt + [0-9] DONT MOVE FOCUS
-              ]
-            )
-            9
-        ));
+        # Volume
+        (genRepeatingBindAttrs "XF86AudioRaiseVolume" "function() change_volume(5) end")
+        (genRepeatingBindAttrs "XF86AudioLowerVolume" "function() change_volume(-5) end")
 
-        # Repeating
-        binde = [
-          # Volume
-          ", XF86AudioLowerVolume, exec, wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"
-          ", XF86AudioRaiseVolume, exec, wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ 5%+" # Limit volume to 150%
+        # Screen brightness
+        (genRepeatingBindAttrs "XF86MonBrightnessUp" "function() change_brightness(10) end")
+        (genRepeatingBindAttrs "XF86MonBrightnessDown" "function() change_brightness(-10) end")
 
-          # Screen brightness
-          ", XF86MonBrightnessUp, exec, brightnessctl --min-value=235 --exponent=3 s +10%"
-          ", XF86MonBrightnessDown, exec, brightnessctl --min-value=235 --exponent=3 s 10%-"
-        ];
+        # Screenshot
+        (genBindAttrs "Print" "hl.dsp.exec_cmd('${config.home.homeDirectory}/dotfiles/scripts/screenshot.sh')")
+        (genBindAttrs "META + Print" "hl.dsp.exec_cmd('${config.home.homeDirectory}/dotfiles/scripts/screenshot.sh -e')") # Edit
+        (genBindAttrs "CTRL + Print" "hl.dsp.exec_cmd('hyprpicker -a')")
 
-        # Mouse
-        # Move/resize windows with mod + LMB/RMB and dragging
-        bindm = [
-          "META, mouse:272, movewindow" # Move window
-          "META, mouse:273, resizewindow" # Resize window
-        ];
-      };
-    };
+        # Move focus with META + arrow keys
+        (genBindAttrs "META + H" "hl.dsp.focus({direction = 'l'})")
+        (genBindAttrs "META + L" "hl.dsp.focus({direction = 'r'})")
+        (genBindAttrs "META + K" "hl.dsp.focus({direction = 'u'})")
+        (genBindAttrs "META + J" "hl.dsp.focus({direction = 'd'})")
+
+        # Move window
+        (genBindAttrs "META + SHIFT + H" "hl.dsp.window.move({direction = 'l'})")
+        (genBindAttrs "META + SHIFT + L" "hl.dsp.window.move({direction = 'r'})")
+        (genBindAttrs "META + SHIFT + K" "hl.dsp.window.move({direction = 'u'})")
+        (genBindAttrs "META + SHIFT + J" "hl.dsp.window.move({direction = 'd'})")
+
+        # Switch workspaces
+        (genBindAttrs "META + Y" "hl.dsp.focus({workspace = 'r-1'})")
+        (genBindAttrs "META + O" "hl.dsp.focus({workspace = 'r+1'})")
+
+        # Move active window to a workspace
+        (genBindAttrs "META + SHIFT + Y" "hl.dsp.window.move({workspace = '-1'})")
+        (genBindAttrs "META + SHIFT + O" "hl.dsp.window.move({workspace = '+1'})")
+
+        # Move active window to a workspace and don't move focus
+        (genBindAttrs "META + ALT + Y" "hl.dsp.window.move({workspace = '-1', follow = false})")
+        (genBindAttrs "META + ALT + O" "hl.dsp.window.move({workspace = '+1', follow = false})")
+
+        (genBindAttrs "META + 0" "hl.dsp.workspace.toggle_special('special')")
+        (genBindAttrs "META + SHIFT + SEMICOLON" "hl.dsp.layout('rotatesplit 90')")
+        (genBindAttrs "META + ALT + SEMICOLON" "hl.dsp.layout('movetoroot')")
+      ]
+      ++ (builtins.concatLists (
+        builtins.genList (
+          i:
+          let
+            ws = i + 1;
+          in
+          [
+            (genBindAttrs "META + code:1${toString i}" "hl.dsp.focus({workspace = '${toString ws}'})") # Switch workspaces with META + [0-9]
+            (genBindAttrs "META + SHIFT + code:1${toString i}" "hl.dsp.window.move({workspace = '${toString ws}'})"
+
+            ) # Move active window to a workspace with META + SHIFT + [0-9]
+            (genBindAttrs "META + ALT + code:1${toString i}" "hl.dsp.window.move({workspace = '${toString ws}', follow = false})"
+
+            ) # Move active window to a workspace with META + alt + [0-9] DONT MOVE FOCUS
+          ]
+        ) 9
+      ));
   };
 }

@@ -1,36 +1,27 @@
 {
-  config,
-  lib,
-  pkgs,
+  inputs,
   ...
 }:
 
 {
   imports = [
     ./hardware-configuration.nix
-    ../../modules/os/personal.nix
+
+    # Dell Inspiron 13 5320
+    inputs.nixos-hardware.nixosModules.common-pc-laptop
+    inputs.nixos-hardware.nixosModules.common-pc-laptop-ssd
+    "${inputs.nixos-hardware}/common/cpu/intel/alder-lake"
+
+    ../../modules/os/personal
   ];
 
   networking.hostName = "vecna";
-  hardware.nvidia.open = true;
-  services.xserver.videoDrivers = [ "nvidia" ];
 
-  # This option defines the first version of NixOS you have installed on this particular machine,
-  # and is used to maintain compatibility with application data (e.g. databases) created on older NixOS versions.
-  #
-  # Most users should NEVER change this value after the initial install, for any reason,
-  # even if you've upgraded your system to a new NixOS release.
-  #
-  # This value does NOT affect the Nixpkgs version your packages and OS are pulled from,
-  # so changing it will NOT upgrade your system - see https://nixos.org/manual/nixos/stable/#sec-upgrading for how
-  # to actually do that.
-  #
-  # This value being lower than the current NixOS release does NOT mean your system is
-  # out of date, out of support, or vulnerable.
-  #
-  # Do NOT change this value unless you have manually inspected all the changes it would make to your configuration,
-  # and migrated your data accordingly.
-  #
-  # For more information, see `man configuration.nix` or https://nixos.org/manual/nixos/stable/options#opt-system.stateVersion .
-  system.stateVersion = "24.11"; # Did you read the comment?
+  boot.loader.grub.useOSProber = true;
+
+  # FIXME
+  # services.evremap = {
+  #   enable = true; # Enabled here, configured in os/personal/base.nix
+  #   settings.device_name = "Framework Laptop 16 Keyboard Module - ANSI Keyboard"; # evremap list-devices
+  # };
 }

@@ -1,3 +1,4 @@
+// FIXME
 {
   "C_Cpp.autocompleteAddParentheses": true,
   "[markdown]": {
@@ -23,7 +24,10 @@
       "color": "#3498DB",
       "italic": false,
       "strikethrough": false,
-      "tag": ["?", "todo"],
+      "tag": [
+        "?",
+        "todo"
+      ],
       "underline": false,
     },
     {
@@ -41,7 +45,12 @@
       "color": "#FF2D00",
       "italic": false,
       "strikethrough": false,
-      "tag": ["!", "urgent", "broken", "xxx"],
+      "tag": [
+        "!",
+        "urgent",
+        "broken",
+        "xxx"
+      ],
       "underline": false,
     },
     {
@@ -58,9 +67,10 @@
   "cSpell.enabled": true,
   "cSpell.language": "en,en-GB",
   "cSpell.userWords": [
-    "btrbk",
     "btrfs",
+    "Endstops",
     "GCODE",
+    "hotend",
     "Jacka",
     "mancala",
     "mancalas",
@@ -68,7 +78,7 @@
     "Powercon",
     "Powercons",
     "substituters",
-    "unnesacary",
+    "unnesacary"
   ],
   "debug.closeReadonlyTabsOnEnd": true,
   "debug.inlineValues": "on",
@@ -95,9 +105,6 @@
   "editor.fontFamily": "\"CaskaydiaCove NF\", \"CaskaydiaCove Nerd Font\", \"CaskaydiaCove NFM\", \"CaskaydiaCove Nerd Font Mono\",  monospace",
   "editor.fontLigatures": true,
   "editor.fontSize": 13,
-  "editor.formatOnPaste": true,
-  "editor.formatOnSave": true,
-  "editor.formatOnType": true,
   "editor.gotoLocation.alternativeDeclarationCommand": "editor.action.referenceSearch.trigger",
   "editor.gotoLocation.alternativeDefinitionCommand": "editor.action.referenceSearch.trigger",
   "editor.guides.bracketPairs": "active",
@@ -131,7 +138,7 @@
   "editor.wordSeparators": "`~!@#$%^&*()-=+[{]}\\|;:'\",.<>/?_",
   "editor.wordWrap": "off",
   "editor.wrappingIndent": "indent",
-  "errorLens.exclude": ["TODO", "FIXME"],
+  "errorLens.exclude": [],
   "eslint.codeActionsOnSave.mode": "all",
   "eslint.lintTask.enable": true,
   "eslint.probe": [
@@ -195,7 +202,9 @@
     "rgba(64,64,255,0.07)",
     "rgba(255,64,255,0.07)",
   ],
-  "indentRainbow.ignoreErrorLanguages": ["*"],
+  "indentRainbow.ignoreErrorLanguages": [
+    "*"
+  ],
   "javascript.updateImportsOnFileMove.enabled": "always",
   "keyboard.dispatch": "keyCode",
   "markdownlint.config": {
@@ -228,7 +237,7 @@
   "svelte.enable-ts-plugin": true,
   "telemetry.telemetryLevel": "error",
   "terminal.integrated.cursorBlinking": true,
-  "terminal.integrated.defaultProfile.linux": "zsh",
+  "terminal.integrated.defaultProfile.linux": "bash",
   "terminal.integrated.defaultProfile.windows": "Command Prompt",
   "terminal.integrated.enableMultiLinePasteWarning": false,
   "terminal.integrated.enableVisualBell": true,
@@ -249,14 +258,17 @@
       "icon": "terminal-tmux",
       "path": "tmux",
     },
-    "zsh": {
-      "path": "zsh",
+    "bash": {
+      "path": "bash",
     },
   },
   "terminal.integrated.profiles.windows": {
     "Command Prompt": {
       "icon": "terminal-cmd",
-      "path": ["${env:windir}\\Sysnative\\cmd.exe", "${env:windir}\\System32\\cmd.exe"],
+      "path": [
+        "${env:windir}\\Sysnative\\cmd.exe",
+        "${env:windir}\\System32\\cmd.exe"
+      ],
     },
     "Git Bash": {
       "source": "Git Bash",
@@ -267,8 +279,7 @@
   "typescript.updateImportsOnFileMove.enabled": "always",
   "window.customTitleBarVisibility": "auto",
   "window.dialogStyle": "custom",
-  "window.title": "${dirty}${rootName}${separator}${activeEditorShort}",
-  "window.titleBarStyle": "custom",
+  "window.title": "${dirty}${rootName}${separator}VSCode",
   "workbench.colorCustomizations": {
     "tree.inactiveIndentGuidesStroke": "#21262d",
     "tree.indentGuidesStroke": "#52575d",
@@ -301,11 +312,16 @@
   "zenMode.hideLineNumbers": false,
   "zenMode.restore": false,
   "rust-analyzer.assist.expressionFillDefault": "default",
-  "diffEditor.ignoreTrimWhitespace": true,
+  "diffEditor.ignoreTrimWhitespace": false,
   "git-graph.repository.commits.initialLoad": 50,
   "git-graph.retainContextWhenHidden": false,
   "git.blame.statusBarItem.enabled": true,
-  "shfmt.executableArgs": ["-s", "-i", "2", "-ci"],
+  "shfmt.executableArgs": [
+    "-s",
+    "-i",
+    "2",
+    "-ci"
+  ],
   "search.exclude": {
     "**/*.lock": true,
   },
@@ -313,21 +329,19 @@
     {
       "command": "treefmt -vv --tree-root $(dirname ${file}) --stdin ${file}",
       // "command": "cat $(prettier --find-config-path ${file}) > /tmp/asd",
-      "languages": ["*"],
+      "languages": [
+        "*"
+      ],
     },
   ],
   "editor.defaultFormatter": "jkillian.custom-local-formatters",
   "workbench.colorTheme": "GitHub Dark Default",
   "update.mode": "none",
   "extensions.autoCheckUpdates": false,
-  "workbench.activityBar.location": "hidden",
   "nix.enableLanguageServer": true,
   "nix.serverPath": "nixd",
   "nix.serverSettings": {
     "nixd": {
-      "diagnostic": {
-        "suppress": ["sema-unused-def-lambda-noarg-formal"],
-      },
       "nixpkgs": {
         "expr": "import (builtins.getFlake \"${workspaceFolder}\").inputs.nixpkgs { }",
       },
@@ -341,4 +355,94 @@
       },
     },
   },
+  "github.copilot.nextEditSuggestions.enabled": true,
+  "workbench.secondarySideBar.defaultVisibility": "hidden",
+  "workbench.editor.editorActionsLocation": "titleBar",
+  "oaicopilot.baseUrl": "http://m.i.jacka.net.au:8080",
+  "oaicopilot.delay": 0,
+  "oaicopilot.readFileLines": 0,
+  "oaicopilot.retry": {
+    "enabled": true,
+    "max_attempts": 3,
+    "interval_ms": 1000,
+    "status_codes": [],
+  },
+  "oaicopilot.commitLanguage": "English",
+  "oaicopilot.models": [],
+  "inlineChat.defaultModel": "qwen2.5-coder-3b-instruct-q5_k_m via OAI Compatible (oaicopilot)",
+  "editor.inlineSuggest.edits.showCollapsed": true,
+  "makefile.configureOnOpen": true,
+  "[c]": {
+    "editor.defaultFormatter": "ms-vscode.cpptools",
+  },
+  "github.copilot.enable": {
+    "*": false,
+    "plaintext": false,
+    "markdown": false,
+    "scminput": false
+  },
+  "chat.editing.confirmEditRequestRemoval": false,
+  "terminal.integrated.gpuAcceleration": "off",
+  "chat.editing.confirmEditRequestRetry": false,
+  "chat.viewSessions.orientation": "stacked",
+  "json.schemaDownload.trustedDomains": {
+    "*": true,
+  },
+  "C_Cpp.intelliSenseEngine": "disabled",
+  "search.usePCRE2": true,
+  "[nix]": {
+    "editor.defaultFormatter": "jkillian.custom-local-formatters",
+  },
+  "window.commandCenter": false,
+  "window.controlsStyle": "hidden",
+  "window.enableMenuBarMnemonics": false,
+  "[tsv]": {
+    "editor.insertSpaces": false
+  },
+  "security.workspace.trust.enabled": false,
+  "[rust]": {
+    "editor.defaultFormatter": "rust-lang.rust-analyzer"
+  },
+  "errorLens.excludePatterns": [
+    "**/*.rs"
+  ],
+  "[javascript]": {
+    "editor.defaultFormatter": "vscode.typescript-language-features"
+  },
+  "workbench.editor.useModal": "off",
+  "workbench.activityBar.location": "hidden",
+  "window.density.layout": "compact",
+  "[toml]": {
+    "editor.defaultFormatter": "tamasfe.even-better-toml"
+  },
+  "evenBetterToml.formatter.allowedBlankLines": 1,
+  "evenBetterToml.formatter.columnWidth": 120,
+  "evenBetterToml.schema.links": true,
+  "errorLens.enabled": true,
+  "errorLens.enabledDiagnosticLevels": [
+    "error",
+    "info"
+  ],
+  "betterAlign.surroundSpace": {
+    "colon": [
+      0,
+      1
+    ],
+    "assignment": [
+      1,
+      1
+    ],
+    "arrow": [
+      1,
+      1
+    ],
+    "comment": 1,
+    "from": [
+      1,
+      1
+    ]
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "vscode.json-language-features"
+  }
 }

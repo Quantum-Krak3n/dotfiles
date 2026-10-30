@@ -1,11 +1,8 @@
 {
-  inputs,
   config,
   pkgs,
-  lib,
   ...
 }:
-
 {
   home.packages = [ pkgs.nixd ];
 
@@ -19,46 +16,30 @@
   programs = {
     vscode = {
       enable = true;
-      # package = pkgs.vscodium;
 
-      mutableExtensionsDir = false;
+      mutableExtensionsDir = true;
       profiles.default = {
-        # https://github.com/nix-community/nix4vscode
-        extensions =
-          with inputs.nix4vscode.outputs.lib.${pkgs.stdenv.hostPlatform.system};
-          (
-            [ ]
-            # Themes
-            ++ forVscode [ "PKief.material-icon-theme" ]
-            ++ forVscode [ "github.github-vscode-theme" ]
-            ++ forVscode [ "oderwat.indent-rainbow" ]
+        # https://github.com/nix-community/nix-vscode-extensions
+        extensions = with pkgs; [ # FIXME
+          # Themes
+          vscode-marketplace.pkief.material-icon-theme
+          vscode-marketplace.github.github-vscode-theme
+          vscode-marketplace.oderwat.indent-rainbow
 
-            # Languages
-            ++ forVscode [ "yzhang.markdown-all-in-one" ]
-            ++ forVscode [ "bierner.markdown-preview-github-styles" ]
-            ++ forVscode [ "oven.bun-vscode" ]
-            ++ forVscode [ "mechatroner.rainbow-csv" ]
-            ++ forVscode [ "jnoortheen.nix-ide" ] # TODO https://github.com/nix-community/vscode-nix-ide?tab=readme-ov-file#lsp-plugin-support also is jeff-hykin.better-nix-syntax better?
-            ++ forVscode [ "ms-vscode.cpptools" ]
-            ++ forVscode [ "mikestead.dotenv" ]
-            ++ forVscode [ "tamasfe.even-better-toml" ]
+          # Languages
+          vscode-marketplace.yzhang.markdown-all-in-one
+          vscode-marketplace.bierner.markdown-preview-github-styles
+          vscode-marketplace.mechatroner.rainbow-csv
+          vscode-marketplace.jnoortheen.nix-ide
 
-            ++ forVscode [ "demijollamaxime.bulma" ] # 51k downloads
-            # ++ forVscode [ "fiazluthfi.bulma-snippets" ] # 26k downloads
-            # ++ forVscode [ "reliutg.bulma-css-class-completion" ] # 15k downloads
-
-            # Utility
-            ++ forVscode [ "jkillian.custom-local-formatters" ]
-            ++ forVscode [ "aaron-bond.better-comments" ]
-            ++ forVscode [ "usernamehw.errorlens" ]
-            ++ forVscode [ "ms-vscode.hexeditor" ]
-            ++ forVscode [ "mhutchie.git-graph" ]
-            ++ forVscode [ "streetsidesoftware.code-spell-checker" ]
-            ++ forVscode [ "VisualStudioExptTeam.vscodeintellicode" ]
-            ++ forVscode [ "VisualStudioExptTeam.intellicode-api-usage-examples" ]
-            ++ forVscode [ "VisualStudioExptTeam.vscodeintellicode-completions" ]
-            ++ forVscode [ "christian-kohler.path-intellisense" ]
-          );
+          # Utility
+          vscode-marketplace.aaron-bond.better-comments
+          vscode-marketplace.usernamehw.errorlens
+          vscode-marketplace.ms-vscode.hexeditor
+          vscode-marketplace.mhutchie.git-graph
+          vscode-marketplace.streetsidesoftware.code-spell-checker
+          vscode-marketplace.christian-kohler.path-intellisense
+        ];
       };
     };
   };
