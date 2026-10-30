@@ -314,7 +314,7 @@ hl.gesture({
 
 -- settings.monitor
 hl.monitor({
-  mode = "2560x1600@165", -- FIXME
+  -- mode = "2560x1600@165", -- FIXME
   output = "eDP-1",
   position = "auto",
   scale = 1.333333,

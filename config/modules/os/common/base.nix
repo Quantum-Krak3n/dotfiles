@@ -73,7 +73,7 @@
     };
   };
 
-  security.sudo.wheelNeedsPassword = false; # FIXME do you want this?
+  security.sudo.wheelNeedsPassword = true;
 
   services = {
     openssh = {
